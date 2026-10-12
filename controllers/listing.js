@@ -1,9 +1,33 @@
 const Listing = require("../models/listing.js");
 
 module.exports.index = async(req,res) =>{
-    let allListings = await Listing.find({})
-    res.render("listings/index.ejs",{allListings});
+    // let allListings = await Listing.find({})
+    // res.render("listings/index.ejs",{allListings});
   
+    const { q } = req.query;
+    let filter = {};
+
+    if (q && q.trim()) {
+        // escape regex special characters so input like "c++" or "(" can't break the query
+        const safe = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(safe, "i");   // "i" = case-insensitive
+        filter = {
+            $or: [
+                { title: regex },
+                { location: regex },
+                { country: regex },
+            ],
+        };
+    }
+
+    const allListings = await Listing.find(filter);
+
+    if (q && allListings.length === 0) {
+        req.flash("error", `No listings found for "${q}"`);
+        return res.redirect("/listings");
+    }
+
+    res.render("listings/index.ejs", { allListings, q });
 };
 
 module.exports.renderNewForm = (req,res) => {
