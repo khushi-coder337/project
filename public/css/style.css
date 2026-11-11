@@ -102,3 +102,6 @@ body{
    padding-left: 0;
    padding-right: 0;
 }
+.f-info-links a {
+   margin: 0 12px;
+}
